@@ -44,7 +44,7 @@ func realMain() int {
 		tmplData[s[:o]] = s[o+1:]
 	}
 
-	err = tmpl.ExecuteTemplate(os.Stdout, tmplName, nil)
+	err = tmpl.ExecuteTemplate(os.Stdout, tmplName, tmplData)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Template execution: %s\n", err)
 		return exitTemplateExecutionError

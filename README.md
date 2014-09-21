@@ -2,6 +2,8 @@
 
 Quick and dirty utility that executes a text templates using data from environment variables.
 
+[![Build Status](https://travis-ci.org/williambailey/go-envtmpl.svg)](https://travis-ci.org/williambailey/go-envtmpl)
+
 ## Install
 
 ```bash

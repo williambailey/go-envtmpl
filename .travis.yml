@@ -1,0 +1,8 @@
+language: go
+go:
+ - tip
+install:
+  - go get -d ./...
+script:
+  - go test -v ./...
+  - go build -o ./envtmpl/envtmpl envtmpl/*.go

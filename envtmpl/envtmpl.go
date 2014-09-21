@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"code.google.com/p/go-uuid/uuid"
 )
 
 const exitOk = 0
@@ -174,5 +176,12 @@ func initFuncMap() {
 			fooExample,
 		},
 		fn: strings.ToUpper,
+	}
+	funcMap["uuid"] = &tmplFuncStruct{
+		short: "Create a random (v4) UUID.",
+		examples: []string{
+			`{{ %s }}`,
+		},
+		fn: uuid.New,
 	}
 }

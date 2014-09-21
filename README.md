@@ -48,6 +48,10 @@ upper :: Convert to upper case.
  * {{ "foo BAR bAz" | upper }}
 FOO BAR BAZ
 
+uuid :: Create a random (v4) UUID.
+ * {{ uuid }}
+fc1f9511-2fa5-457a-9cc0-b448a0bc4c6a
+
 exit status 1
 ```
 

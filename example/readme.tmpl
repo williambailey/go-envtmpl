@@ -22,37 +22,7 @@ Full usage is available by invoking `envtmpl` without any arguments.
 envtmpl
 ```
 ```
-Usage: envtmpl tmplDir tmplName
-
-Parse tmplDir/*.tmpl and renders tmplName to stdout using
-the data from environmental variables.
-
-See http://golang.org/pkg/text/template/ for template syntax.
-
-Exit codes:
-
-0 OK.
-1 Usage.
-2 Template parse error.
-3 Template execution error.
-
-Template Functions:
-
-lower :: Convert to lower case.
- * {{ "foo BAR bAz" | lower }}
-foo bar baz
-
-title :: Convert to title case.
- * {{ "foo BAR bAz" | title }}
-Foo BAR BAz
-
-upper :: Convert to upper case.
- * {{ "foo BAR bAz" | upper }}
-FOO BAR BAZ
-
-uuid :: Create a random (v4) UUID.
- * {{ uuid }}
-7a1a281e-bd5a-4bcf-a26d-b33971546e77
+{{ .USAGE }}
 ```
 
 ## Contributing

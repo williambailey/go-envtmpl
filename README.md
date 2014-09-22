@@ -1,6 +1,6 @@
 # envtmpl
 
-Quick and dirty utility that executes a text templates using data from environment variables.
+Executes text templates using data from environment variables and sends the result to STDOUT.
 
 [![Build Status](https://travis-ci.org/williambailey/go-envtmpl.svg)](https://travis-ci.org/williambailey/go-envtmpl)
 
@@ -52,7 +52,7 @@ FOO BAR BAZ
 
 uuid :: Create a random (v4) UUID.
  * {{ uuid }}
-7a1a281e-bd5a-4bcf-a26d-b33971546e77
+30354816-79ec-491d-acc3-1bfb84b0e7fd
 ```
 
 ## Contributing

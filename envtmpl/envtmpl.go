@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -32,32 +33,56 @@ func init() {
 }
 
 func main() {
-	os.Exit(realMain())
+	os.Exit(new(os.Environ(), os.Args, os.Stdout, os.Stderr).main())
 }
 
-func realMain() int {
-	flag.Usage = usage
-	flag.Parse()
-	if flag.NArg() != 2 {
-		flag.Usage()
+func new(
+	env []string,
+	args []string,
+	stdout io.Writer,
+	stderr io.Writer,
+) *envtmpl {
+	app := &envtmpl{
+		stdout: stdout,
+		stderr: stderr,
+		env:    env,
+		cmd:    filepath.Base(args[0]),
+		flag:   flag.NewFlagSet(filepath.Base(args[0]), flag.ExitOnError),
+	}
+	app.flag.Usage = app.usage
+	app.flag.Parse(args[1:])
+	return app
+}
+
+type envtmpl struct {
+	env    []string
+	stdout io.Writer
+	stderr io.Writer
+	cmd    string
+	flag   *flag.FlagSet
+}
+
+func (app *envtmpl) main() int {
+	if app.flag.NArg() != 2 {
+		app.flag.Usage()
 		return exitUsage
 	}
-	args := flag.Args()
+	args := app.flag.Args()
 	tmplDir := args[0]
 	tmplName := args[1]
 	tmplData := make(map[string]string)
 
 	tmpl := template.New(
-		fmt.Sprintf("%s [%s]", filepath.Base(os.Args[0]), tmplDir),
+		fmt.Sprintf("%s [%s]", app.cmd, tmplDir),
 	).Funcs(tmplFuncs)
 
 	_, err := tmpl.ParseGlob(filepath.Join(tmplDir, "*.tmpl"))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Template parse error: %s\n", err)
+		fmt.Fprintf(app.stderr, "Template parse error: %s\n", err)
 		return exitTemplateParseError
 	}
 
-	for _, s := range os.Environ() {
+	for _, s := range app.env {
 		o := strings.Index(s, "=")
 		if o <= 0 {
 			continue
@@ -65,15 +90,15 @@ func realMain() int {
 		tmplData[s[:o]] = s[o+1:]
 	}
 
-	err = tmpl.ExecuteTemplate(os.Stdout, tmplName, tmplData)
+	err = tmpl.ExecuteTemplate(app.stdout, tmplName, tmplData)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Template execution: %s\n", err)
+		fmt.Fprintf(app.stderr, "Template execution: %s\n", err)
 		return exitTemplateExecutionError
 	}
 	return exitOk
 }
 
-func usage() {
+func (app *envtmpl) usage() {
 	usageTemplate := template.Must(template.New("").Parse(`
 Usage: {{ .cmd }} tmplDir tmplName
 
@@ -120,12 +145,12 @@ Template Functions:
 		funcs[n] = fd
 	}
 	usageTemplate.Execute(&u, map[string]interface{}{
-		"cmd":   filepath.Base(os.Args[0]),
+		"cmd":   filepath.Base(app.cmd),
 		"funcs": funcs,
 	})
-	fmt.Fprintf(os.Stderr, "%s", bytes.TrimSpace(u.Bytes()))
-	fmt.Fprint(os.Stderr, "\n\n")
-	flag.PrintDefaults()
+	fmt.Fprintf(app.stderr, "%s", bytes.TrimSpace(u.Bytes()))
+	fmt.Fprint(app.stderr, "\n\n")
+	app.flag.PrintDefaults()
 }
 
 type tmplFuncMap map[string]tmplFunc

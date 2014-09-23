@@ -42,6 +42,10 @@ lower :: Convert to lower case.
  * {{ "foo BAR bAz" | lower }}
 foo bar baz
 
+split :: Split in a string substrings using another string.
+ * {{ range $k, $v := split "foo BAR bAz" " " }}{{ $k }}={{ $v }} {{ end }}
+0=foo 1=BAR 2=bAz 
+
 title :: Convert to title case.
  * {{ "foo BAR bAz" | title }}
 Foo BAR BAz
@@ -52,7 +56,7 @@ FOO BAR BAZ
 
 uuid :: Create a random (v4) UUID.
  * {{ uuid }}
-30354816-79ec-491d-acc3-1bfb84b0e7fd
+4cd3c63a-82a0-46f1-878d-dce74d9cd6ba
 ```
 
 ## Contributing

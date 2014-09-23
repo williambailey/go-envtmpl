@@ -10,32 +10,19 @@ Executes text templates using data from environment variables and sends the resu
 go get -u github.com/williambailey/go-envtmpl/envtmpl
 ```
 
-## Usage
+{{ .USAGE | regexReplace "^#" "##" }}
 
-```bash
-envtmpl example example.tmpl
-```
-
-Full usage is available by invoking `envtmpl` without any arguments.
-
-```bash
-envtmpl
-```
-```
-{{ .USAGE }}
-```
-
-## Contributing
+# Contributing
 
 1. Fork the repository on GitHub
 2. Create a named feature branch (i.e. `add-new-feature`)
 3. Write your change
 4. Submit a Pull Request
 
-## Authors
+# Authors
 
 - William Bailey - [@cowboysfromhell](https://twitter.com/cowboysfromhell) - ([mail@williambailey.org.uk](mailto:mail@williambailey.org.uk))
 
-## License
+# License
 
 Licensed under a [MIT license](LICENSE.txt).

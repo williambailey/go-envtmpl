@@ -7,11 +7,46 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"text/template"
 
 	"code.google.com/p/go-uuid/uuid"
 )
+
+const usageTemplate = `
+# Usage: {{ .cmd }} tmplDir tmplName.tmpl
+
+Parse **tmplDir/*.tmpl** and renders **tmplName.tmpl** to STDOUT using
+the data from environmental variables.
+
+See http://golang.org/pkg/text/template/ for template syntax.
+
+See http://code.google.com/p/re2/wiki/Syntax for regular expression syntax.
+
+### Exit codes
+
+* 0 - OK.
+* 1 - Usage.
+* 2 - Template parse error.
+* 3 - Template execution error.
+
+## Template Functions
+
+{{ range $k, $v := .funcs }}### {{ $k }}
+
+{{ $v.Short }}
+{{ range $ex, $out := $v.Example }}
+Template:
+
+{{ $ex | linePrefix "    " }}
+
+Output:
+
+{{ $out | linePrefix "    " }}
+
+{{ end }}{{ end }}
+`
 
 const exitOk = 0
 const exitUsage = 1
@@ -19,17 +54,12 @@ const exitTemplateParseError = 2
 const exitTemplateExecutionError = 3
 
 var (
-	funcMap   tmplFuncMap
-	tmplFuncs template.FuncMap
+	funcMap tmplFuncMap
 )
 
 func init() {
 	funcMap = make(tmplFuncMap)
 	initFuncMap()
-	tmplFuncs = make(template.FuncMap)
-	for k, v := range funcMap {
-		tmplFuncs[k] = v.f()
-	}
 }
 
 func main() {
@@ -74,7 +104,7 @@ func (app *envtmpl) main() int {
 
 	tmpl := template.New(
 		fmt.Sprintf("%s [%s]", app.cmd, tmplDir),
-	).Funcs(tmplFuncs)
+	).Funcs(funcMap.funcs())
 
 	_, err := tmpl.ParseGlob(filepath.Join(tmplDir, "*.tmpl"))
 	if err != nil {
@@ -99,30 +129,9 @@ func (app *envtmpl) main() int {
 }
 
 func (app *envtmpl) usage() {
-	usageTemplate := template.Must(template.New("").Parse(`
-Usage: {{ .cmd }} tmplDir tmplName
-
-Parse tmplDir/*.tmpl and renders tmplName to stdout using
-the data from environmental variables.
-
-See http://golang.org/pkg/text/template/ for template syntax.
-
-Exit codes:
-
-0 OK.
-1 Usage.
-2 Template parse error.
-3 Template execution error.
-
-Template Functions:
-
-{{ range $k, $v := .funcs }}{{ $k }} :: {{ $v.Short }}
-{{ range $ex, $out := $v.Example }} * {{ $ex }}
-{{ $out }}
-{{ end }}
-{{ end }}
-
-`))
+	usageTemplate := template.Must(
+		template.New("").Funcs(funcMap.funcs()).Parse(usageTemplate),
+	)
 	type funcData struct {
 		Short   string
 		Example map[string]string
@@ -136,11 +145,13 @@ Template Functions:
 		}
 		for _, e := range fn.example(n) {
 			var b bytes.Buffer
-			ex := fmt.Sprintf(e, n)
-			template.Must(
-				template.New(n).Funcs(tmplFuncs).Parse(ex),
+			err := template.Must(
+				template.New(n).Funcs(funcMap.funcs()).Parse(e),
 			).Execute(&b, struct{}{})
-			fd.Example[ex] = b.String()
+			if err != nil {
+				panic(err)
+			}
+			fd.Example[e] = b.String()
 		}
 		funcs[n] = fd
 	}
@@ -154,6 +165,14 @@ Template Functions:
 }
 
 type tmplFuncMap map[string]tmplFunc
+
+func (m *tmplFuncMap) funcs() map[string]interface{} {
+	funcs := make(template.FuncMap)
+	for k, v := range funcMap {
+		funcs[k] = v.f()
+	}
+	return funcs
+}
 
 type tmplFunc interface {
 	shortUsage() string
@@ -172,7 +191,11 @@ func (s *tmplFuncStruct) shortUsage() string {
 }
 
 func (s *tmplFuncStruct) example(name string) []string {
-	return s.examples
+	e := make([]string, len(s.examples))
+	for k, v := range s.examples {
+		e[k] = fmt.Sprintf(v, name)
+	}
+	return e
 }
 
 func (s *tmplFuncStruct) f() interface{} {
@@ -181,12 +204,39 @@ func (s *tmplFuncStruct) f() interface{} {
 
 func initFuncMap() {
 	const fooExample = `{{ "foo BAR bAz" | %s }}`
+	funcMap["linePrefix"] = &tmplFuncStruct{
+		short: "Prefix each line.",
+		examples: []string{
+			`{{ "line1\nline2\nline3" | %s "- " }}`,
+		},
+		fn: func(prefix, data string) string {
+			var b bytes.Buffer
+			for _, v := range strings.SplitAfter(data, "\n") {
+				b.WriteString(prefix)
+				b.WriteString(v)
+			}
+			return b.String()
+		},
+	}
 	funcMap["lower"] = &tmplFuncStruct{
 		short: "Convert to lower case.",
 		examples: []string{
 			fooExample,
 		},
 		fn: strings.ToLower,
+	}
+	funcMap["regexReplace"] = &tmplFuncStruct{
+		short: "Replace values using a regular expression.",
+		examples: []string{
+			`{{ "this is something" | %s "(this) is " "[$1] was " }}`,
+		},
+		fn: func(search, replace, src string) (string, error) {
+			re, err := regexp.Compile(search)
+			if err != nil {
+				return "", err
+			}
+			return re.ReplaceAllString(src, replace), nil
+		},
 	}
 	funcMap["split"] = &tmplFuncStruct{
 		short: "Split in a string substrings using another string.",

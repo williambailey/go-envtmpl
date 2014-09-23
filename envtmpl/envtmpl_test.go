@@ -43,7 +43,7 @@ func TestInvokeWithoutArgsExitsWithUsage(t *testing.T) {
 	if o.Len() != 0 {
 		t.Errorf("Expecting stdout len to be 0, got %d", o.Len())
 	}
-	ex := []byte("Usage: me tmplDir tmplName")
+	ex := []byte("# Usage: me tmplDir tmplName")
 	if !bytes.HasPrefix(e.Bytes(), ex) {
 		t.Errorf("Expecting stderr to start `%s` got `%s`", ex, e.Bytes()[:len(ex)])
 	}

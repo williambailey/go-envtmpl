@@ -6,11 +6,13 @@ Executes text templates using data from environment variables and sends the resu
 
 ## Install
 
-```bash
-go get -u github.com/williambailey/go-envtmpl/envtmpl
+```
+$ go get -u github.com/williambailey/go-envtmpl/envtmpl
+$ $GOPATH/bin/envtmpl
+{{ .USAGE }}
 ```
 
-{{ .USAGE | regexReplace "^#" "##" }}
+{{ .HELP_USAGE | regexReplace "^#" "##" }}
 
 # Contributing
 

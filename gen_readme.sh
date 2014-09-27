@@ -1,6 +1,11 @@
 #!/bin/bash
 GLOBIGNORE="*_test.go"
-cmd="go run `pwd`/envtmpl/*.go --"
-USAGE=`$cmd 2>&1` $cmd `pwd`/example readme.tmpl > README.md
-cat README.md
-exit $?
+cd envtmpl
+go build .
+USAGE=`./envtmpl 2>&1` \
+  HELP_USAGE=`./envtmpl -h 2>&1` \
+  ./envtmpl ../example readme.tmpl > ../README.md
+status=$?
+cat ../README.md
+rm envtmpl
+exit $status

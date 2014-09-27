@@ -6,14 +6,23 @@ Executes text templates using data from environment variables and sends the resu
 
 ## Install
 
-```bash
-go get -u github.com/williambailey/go-envtmpl/envtmpl
+```
+$ go get -u github.com/williambailey/go-envtmpl/envtmpl
+$ $GOPATH/bin/envtmpl
+Usage:
+  envtmpl tmplDir tmplName.tmpl
+
+Parse tmplDir/*.tmpl and renders tmplName.tmpl to
+STDOUT using environment variables.
+
+Help:
+  envtmpl -h
 ```
 
 ## Usage: envtmpl tmplDir tmplName.tmpl
 
 Parse **tmplDir/*.tmpl** and renders **tmplName.tmpl** to STDOUT using
-the data from environmental variables.
+environment variables.
 
 See http://golang.org/pkg/text/template/ for template syntax.
 
@@ -48,11 +57,11 @@ Convert to lower case.
 
 Template:
 
-    {{ "foo BAR bAz" | lower }}
+    {{ "Hello WORLD!" | lower }}
 
 Output:
 
-    foo bar baz
+    hello world!
 
 ### regexReplace
 
@@ -90,17 +99,71 @@ Output:
 
     Foo BAR BAz
 
+### trimPrefix
+
+Remove leading prefix. If the string doesn't start with the prefix then it's unchanged.
+
+Template:
+
+    {{ "foo.bar" | trimPrefix "baz." }}
+
+Output:
+
+    foo.bar
+
+
+Template:
+
+    {{ "foo.bar" | trimPrefix "foo." }}
+
+Output:
+
+    bar
+
+### trimSpace
+
+Remove all leading and trailing white space.
+
+Template:
+
+    {{ " \t\n foo bar \t\n " | trimSpace }}
+
+Output:
+
+    foo bar
+
+### trimSuffix
+
+Remove trailing suffix. If the string doesn't end with the suffix then it's unchanged.
+
+Template:
+
+    {{ "foo.bar" | trimSuffix ".bar" }}
+
+Output:
+
+    foo
+
+
+Template:
+
+    {{ "foo.bar" | trimSuffix ".baz" }}
+
+Output:
+
+    foo.bar
+
 ### upper
 
 Convert to upper case.
 
 Template:
 
-    {{ "foo BAR bAz" | upper }}
+    {{ "Hello World!" | upper }}
 
 Output:
 
-    FOO BAR BAZ
+    HELLO WORLD!
 
 ### uuid
 
@@ -112,9 +175,7 @@ Template:
 
 Output:
 
-    dd60fce2-e929-485a-888e-db9801b95770
-
-exit status 1
+    7e6574af-55c7-46bc-8cfd-6de063d66f39
 
 # Contributing
 

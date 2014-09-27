@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -43,9 +44,44 @@ func TestInvokeWithoutArgsExitsWithUsage(t *testing.T) {
 	if o.Len() != 0 {
 		t.Errorf("Expecting stdout len to be 0, got %d", o.Len())
 	}
-	ex := []byte("# Usage: me tmplDir tmplName")
-	if !bytes.HasPrefix(e.Bytes(), ex) {
-		t.Errorf("Expecting stderr to start `%s` got `%s`", ex, e.Bytes()[:len(ex)])
+	u := []byte("Usage:")
+	if !bytes.HasPrefix(e.Bytes(), u) {
+		t.Errorf("Expecting stderr to start `%s` got `%s`", u, e.Bytes()[:len(u)])
+	}
+}
+
+func TestInvokeWithHelpFlagDisplaysHelpAndExitsWithUsage(t *testing.T) {
+	r, o, e := run(t, []string{}, []string{"me", "-h"})
+	if r != exitUsage {
+		t.Errorf(
+			"Expecting application to terminate with ExitUsage, %d, got %d.",
+			exitUsage,
+			r,
+		)
+	}
+	if o.Len() != 0 {
+		t.Errorf("Expecting stdout len to be 0, got %d", o.Len())
+	}
+	u := []byte("# Usage: me tmplDir tmplName.tmpl")
+	if !bytes.HasPrefix(e.Bytes(), u) {
+		t.Errorf("Expecting stderr to start `%s` got `%s`", u, e.Bytes()[:len(u)])
+	}
+	// Check that we have all available funcs listed.
+	for n, fn := range funcMap {
+		b := []byte("\n### " + n + "\n")
+		if !bytes.Contains(e.Bytes(), b) {
+			t.Errorf("Expecting stderr to contain `%s`", b)
+		}
+		for _, fex := range fn.example(n) {
+			var b bytes.Buffer
+			for _, v := range strings.SplitAfter(fex, "\n") {
+				b.WriteString("    ")
+				b.WriteString(v)
+			}
+			if !bytes.Contains(e.Bytes(), b.Bytes()) {
+				t.Errorf("Expecting stderr to contain `%s` example `%s`.", n, b)
+			}
+		}
 	}
 }
 

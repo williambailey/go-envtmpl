@@ -7,18 +7,26 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"text/template"
-
-	"code.google.com/p/go-uuid/uuid"
 )
 
 const usageTemplate = `
+Usage:
+  {{ .cmd }} tmplDir tmplName.tmpl
+
+Parse tmplDir/*.tmpl and renders tmplName.tmpl to
+STDOUT using environment variables.
+
+Help:
+  {{ .cmd }} -h
+`
+
+const helpTemplate = `
 # Usage: {{ .cmd }} tmplDir tmplName.tmpl
 
 Parse **tmplDir/*.tmpl** and renders **tmplName.tmpl** to STDOUT using
-the data from environmental variables.
+environment variables.
 
 See http://golang.org/pkg/text/template/ for template syntax.
 
@@ -54,13 +62,8 @@ const exitTemplateParseError = 2
 const exitTemplateExecutionError = 3
 
 var (
-	funcMap tmplFuncMap
+	funcMap = newTmplFuncMap()
 )
-
-func init() {
-	funcMap = make(tmplFuncMap)
-	initFuncMap()
-}
 
 func main() {
 	os.Exit(new(os.Environ(), os.Args, os.Stdout, os.Stderr).main())
@@ -72,12 +75,14 @@ func new(
 	stdout io.Writer,
 	stderr io.Writer,
 ) *envtmpl {
+	f := flag.NewFlagSet(filepath.Base(args[0]), flag.ExitOnError)
 	app := &envtmpl{
-		stdout: stdout,
-		stderr: stderr,
-		env:    env,
-		cmd:    filepath.Base(args[0]),
-		flag:   flag.NewFlagSet(filepath.Base(args[0]), flag.ExitOnError),
+		stdout:   stdout,
+		stderr:   stderr,
+		env:      env,
+		cmd:      filepath.Base(args[0]),
+		flag:     f,
+		flagHelp: f.Bool("h", false, "Display help information, including function list."),
 	}
 	app.flag.Usage = app.usage
 	app.flag.Parse(args[1:])
@@ -85,14 +90,19 @@ func new(
 }
 
 type envtmpl struct {
-	env    []string
-	stdout io.Writer
-	stderr io.Writer
-	cmd    string
-	flag   *flag.FlagSet
+	env      []string
+	stdout   io.Writer
+	stderr   io.Writer
+	cmd      string
+	flag     *flag.FlagSet
+	flagHelp *bool
 }
 
 func (app *envtmpl) main() int {
+	if *app.flagHelp {
+		app.helpUsage()
+		return exitUsage
+	}
 	if app.flag.NArg() != 2 {
 		app.flag.Usage()
 		return exitUsage
@@ -132,6 +142,17 @@ func (app *envtmpl) usage() {
 	usageTemplate := template.Must(
 		template.New("").Funcs(funcMap.funcs()).Parse(usageTemplate),
 	)
+	var u bytes.Buffer
+	usageTemplate.Execute(&u, map[string]interface{}{
+		"cmd": filepath.Base(app.cmd),
+	})
+	fmt.Fprintf(app.stderr, "%s\n\n", bytes.TrimSpace(u.Bytes()))
+}
+
+func (app *envtmpl) helpUsage() {
+	usageTemplate := template.Must(
+		template.New("").Funcs(funcMap.funcs()).Parse(helpTemplate),
+	)
 	type funcData struct {
 		Short   string
 		Example map[string]string
@@ -159,12 +180,14 @@ func (app *envtmpl) usage() {
 		"cmd":   filepath.Base(app.cmd),
 		"funcs": funcs,
 	})
-	fmt.Fprintf(app.stderr, "%s", bytes.TrimSpace(u.Bytes()))
-	fmt.Fprint(app.stderr, "\n\n")
-	app.flag.PrintDefaults()
+	fmt.Fprintf(app.stderr, "%s\n\n", bytes.TrimSpace(u.Bytes()))
 }
 
 type tmplFuncMap map[string]tmplFunc
+
+func newTmplFuncMap() tmplFuncMap {
+	return make(tmplFuncMap)
+}
 
 func (m *tmplFuncMap) funcs() map[string]interface{} {
 	funcs := make(template.FuncMap)
@@ -200,70 +223,4 @@ func (s *tmplFuncStruct) example(name string) []string {
 
 func (s *tmplFuncStruct) f() interface{} {
 	return s.fn
-}
-
-func initFuncMap() {
-	const fooExample = `{{ "foo BAR bAz" | %s }}`
-	funcMap["linePrefix"] = &tmplFuncStruct{
-		short: "Prefix each line.",
-		examples: []string{
-			`{{ "line1\nline2\nline3" | %s "- " }}`,
-		},
-		fn: func(prefix, data string) string {
-			var b bytes.Buffer
-			for _, v := range strings.SplitAfter(data, "\n") {
-				b.WriteString(prefix)
-				b.WriteString(v)
-			}
-			return b.String()
-		},
-	}
-	funcMap["lower"] = &tmplFuncStruct{
-		short: "Convert to lower case.",
-		examples: []string{
-			fooExample,
-		},
-		fn: strings.ToLower,
-	}
-	funcMap["regexReplace"] = &tmplFuncStruct{
-		short: "Replace values using a regular expression.",
-		examples: []string{
-			`{{ "this is something" | %s "(this) is " "[$1] was " }}`,
-		},
-		fn: func(search, replace, src string) (string, error) {
-			re, err := regexp.Compile(search)
-			if err != nil {
-				return "", err
-			}
-			return re.ReplaceAllString(src, replace), nil
-		},
-	}
-	funcMap["split"] = &tmplFuncStruct{
-		short: "Split in a string substrings using another string.",
-		examples: []string{
-			`{{ range $k, $v := %s "foo BAR bAz" " " }}{{ $k }}={{ $v }} {{ end }}`,
-		},
-		fn: strings.Split,
-	}
-	funcMap["title"] = &tmplFuncStruct{
-		short: "Convert to title case.",
-		examples: []string{
-			fooExample,
-		},
-		fn: strings.Title,
-	}
-	funcMap["upper"] = &tmplFuncStruct{
-		short: "Convert to upper case.",
-		examples: []string{
-			fooExample,
-		},
-		fn: strings.ToUpper,
-	}
-	funcMap["uuid"] = &tmplFuncStruct{
-		short: "Create a random (v4) UUID.",
-		examples: []string{
-			`{{ %s }}`,
-		},
-		fn: uuid.New,
-	}
 }

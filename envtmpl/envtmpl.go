@@ -52,8 +52,8 @@ Template:
 Output:
 
 {{ $out | linePrefix "    " }}
-
-{{ end }}{{ end }}
+{{ end }}
+{{ end }}
 `
 
 const exitOk = 0

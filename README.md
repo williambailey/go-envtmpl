@@ -37,6 +37,41 @@ See http://code.google.com/p/re2/wiki/Syntax for regular expression syntax.
 
 ## Template Functions
 
+### base64Encode
+
+Encodes a value to base64.
+
+Template:
+
+    {{ "Hello WORLD!" | base64Encode }}
+
+Output:
+
+    SGVsbG8gV09STEQh
+
+### jsonEncode
+
+Encodes a value to JSON.
+
+Template:
+
+    {{ "Hello\n<WORLD>!" | jsonEncode }}
+
+Output:
+
+    "Hello\n\u003cWORLD\u003e!"
+
+Template:
+
+    {{ split "Hello\n<WORLD>!" "\n" | jsonEncode }}
+
+Output:
+
+    [
+      "Hello",
+      "\u003cWORLD\u003e!"
+    ]
+
 ### linePrefix
 
 Prefix each line.
@@ -111,7 +146,6 @@ Output:
 
     foo.bar
 
-
 Template:
 
     {{ "foo.bar" | trimPrefix "foo." }}
@@ -144,7 +178,6 @@ Output:
 
     foo
 
-
 Template:
 
     {{ "foo.bar" | trimSuffix ".baz" }}
@@ -175,7 +208,7 @@ Template:
 
 Output:
 
-    7e6574af-55c7-46bc-8cfd-6de063d66f39
+    51e8ed98-e2c9-490b-a0bd-9c287a7dcd7b
 
 # Contributing
 

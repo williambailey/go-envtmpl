@@ -110,6 +110,40 @@ Output:
 
     [this] was something
 
+### slugify
+
+Transform text to a slugified version. You can optionally specify a unicode normalization rule (NFC, NFD, NFKC, NFKD). Default is NFC.
+
+Template:
+
+     NFC: {{ "Hello áçćèńtš!" | slugify "NFC" }}
+     NFD: {{ "Hello áçćèńtš!" | slugify "NFD" }}
+    NFKC: {{ "Hello áçćèńtš!" | slugify "NFKC" }}
+    NFKD: {{ "Hello áçćèńtš!" | slugify "NFKD" }}
+
+Output:
+
+     NFC: hello-áçćèńtš
+     NFD: hello-accents
+    NFKC: hello-áçćèńtš
+    NFKD: hello-accents
+
+Template:
+
+    {{ "Hello W/O-R_L~D!" | slugify }}
+
+Output:
+
+    hello-wo-r_l~d
+
+Template:
+
+    {{ "Hello WORLD!" | slugify }}
+
+Output:
+
+    hello-world
+
 ### split
 
 Split in a string substrings using another string.
@@ -208,7 +242,7 @@ Template:
 
 Output:
 
-    51e8ed98-e2c9-490b-a0bd-9c287a7dcd7b
+    fcac0556-a69b-4507-bdc5-f8455d4d90f5
 
 # Contributing
 

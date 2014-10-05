@@ -42,15 +42,15 @@ See http://code.google.com/p/re2/wiki/Syntax for regular expression syntax.
 - [linePrefix](#lineprefix) - Prefix each line.
 - [lower](#lower) - Convert to lower case.
 - [regexReplace](#regexreplace) - Replace values using a regular expression.
-- [slugify](#slugify) - Transform text to a slugified version. You can optionally specify a unicode normalization rule (NFC, NFD, NFKC, NFKD). Default is NFC.
+- [slugify](#slugify) - Transform text to a slugified version.
 - [split](#split) - Split in a string substrings using another string.
 - [title](#title) - Convert to title case.
-- [trimPrefix](#trimprefix) - Remove leading prefix. If the string doesn't start with the prefix then it's unchanged.
+- [trimPrefix](#trimprefix) - Remove leading prefix.
 - [trimSpace](#trimspace) - Remove all leading and trailing white space.
-- [trimSuffix](#trimsuffix) - Remove trailing suffix. If the string doesn't end with the suffix then it's unchanged.
+- [trimSuffix](#trimsuffix) - Remove trailing suffix.
 - [upper](#upper) - Convert to upper case.
 - [uuid](#uuid) - Create a random (v4) UUID.
-- [wordWrap](#wordwrap) - Wraps text to a given number of runes. Any existing white space is lost in the transformation.
+- [wordWrap](#wordwrap) - Wraps text to a given number of runes.
 
 ### base64Encode
 
@@ -257,7 +257,7 @@ Template:
 
 Output:
 
-    a8d78af7-98e0-4263-88e0-82733f8cf858
+    81b0b5eb-ddc4-4650-8817-6660e8a200cf
 
 ### wordWrap
 

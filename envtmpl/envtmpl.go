@@ -41,7 +41,7 @@ See http://code.google.com/p/re2/wiki/Syntax for regular expression syntax.
 
 ## Template Functions
 
-{{ range .funcs }}- [{{ .Name }}](#{{ .Name | slugify }}) - {{ .Short }}
+{{ range .funcs }}- [{{ .Name }}](#{{ .Name | slugify }}) - {{ index (split .Short ".") 0 }}.
 {{ end }}
 {{ range .funcs }}{{ template "funcHelp" . }}{{ end }}
 `

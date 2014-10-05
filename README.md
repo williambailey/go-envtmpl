@@ -50,6 +50,7 @@ See http://code.google.com/p/re2/wiki/Syntax for regular expression syntax.
 - [trimSuffix](#trimsuffix) - Remove trailing suffix. If the string doesn't end with the suffix then it's unchanged.
 - [upper](#upper) - Convert to upper case.
 - [uuid](#uuid) - Create a random (v4) UUID.
+- [wordWrap](#wordwrap) - Wraps text to a given number of runes. Any existing white space is lost in the transformation.
 
 ### base64Encode
 
@@ -256,7 +257,41 @@ Template:
 
 Output:
 
-    5cc63001-6125-4775-a01f-57a9eda13e55
+    a8d78af7-98e0-4263-88e0-82733f8cf858
+
+### wordWrap
+
+Wraps text to a given number of runes. Any existing white space is lost in the transformation.
+
+Template:
+
+    {{ "The quick brown fox jumps over the lazy dog." | wordWrap 19 }}
+
+Output:
+
+    The quick brown
+    fox jumps over the
+    lazy dog.
+
+Template:
+
+    {{ "\t  The quick\nbrown fox jumps over the\n\t\tlazy dog." | wordWrap 19 }}
+
+Output:
+
+    The quick brown
+    fox jumps over the
+    lazy dog.
+
+Template:
+
+    {{ "Γαζέες καὶ μυρτιὲς δὲν θὰ βρῶ πιὰ στὸ χρυσαφὶ ξέφωτο" | wordWrap 19 }}
+
+Output:
+
+    Γαζέες καὶ μυρτιὲς
+    δὲν θὰ βρῶ πιὰ στὸ
+    χρυσαφὶ ξέφωτο
 
 # Contributing
 

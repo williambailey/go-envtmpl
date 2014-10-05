@@ -38,6 +38,7 @@ See http://code.google.com/p/re2/wiki/Syntax for regular expression syntax.
 ## Template Functions
 
 - [base64Encode](#base64encode) - Encodes a value to base64.
+- [jsonDecode](#jsondecode) - Decodes a JSON string.
 - [jsonEncode](#jsonencode) - Encodes a value to JSON.
 - [linePrefix](#lineprefix) - Prefix each line.
 - [lower](#lower) - Convert to lower case.
@@ -63,6 +64,18 @@ Template:
 Output:
 
     SGVsbG8gV09STEQh
+
+### jsonDecode
+
+Decodes a JSON string.
+
+Template:
+
+    {{ $j := "{\"foo\":\"bar\"}" | jsonDecode }}Foo is {{ $j.foo }}
+
+Output:
+
+    Foo is bar
 
 ### jsonEncode
 
@@ -257,7 +270,7 @@ Template:
 
 Output:
 
-    81b0b5eb-ddc4-4650-8817-6660e8a200cf
+    7bef829b-2197-4ca3-8d4d-52ddfdbfd12d
 
 ### wordWrap
 

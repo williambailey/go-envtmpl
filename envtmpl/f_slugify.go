@@ -37,7 +37,7 @@ NFKD: {{ "Hello áçćèńtš!" | %[1]s "NFKD" }}`,
 			switch strings.ToUpper(mode) {
 			case "NFC", "C", "":
 				src = norm.NFC.String(src)
-			case "NFD", "FD":
+			case "NFD", "D":
 				src = norm.NFD.String(src)
 			case "NFKC", "KC":
 				src = norm.NFKC.String(src)

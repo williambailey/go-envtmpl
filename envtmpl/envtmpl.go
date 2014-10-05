@@ -41,10 +41,15 @@ See http://code.google.com/p/re2/wiki/Syntax for regular expression syntax.
 
 ## Template Functions
 
-{{ range $k, $v := .funcs }}### {{ $k }}
+{{ range .funcs }}- [{{ .Name }}](#{{ .Name | slugify }}) - {{ .Short }}
+{{ end }}
+{{ range .funcs }}{{ template "funcHelp" . }}{{ end }}
+`
 
-{{ $v.Short }}
-{{ range $ex, $out := $v.Example }}
+const funcHelpTemplate = `### {{ .Name }}
+
+{{ .Short }}
+{{ range $ex, $out := .Example }}
 Template:
 
 {{ $ex | linePrefix "    " }}
@@ -52,7 +57,6 @@ Template:
 Output:
 
 {{ $out | linePrefix "    " }}
-{{ end }}
 {{ end }}
 `
 
@@ -139,21 +143,24 @@ func (app *envtmpl) main() int {
 }
 
 func (app *envtmpl) usage() {
-	usageTemplate := template.Must(
-		template.New("").Funcs(funcMap.funcs()).Parse(usageTemplate),
+	t := template.Must(
+		template.New("usage").Funcs(funcMap.funcs()).Parse(usageTemplate),
 	)
 	var u bytes.Buffer
-	usageTemplate.Execute(&u, map[string]interface{}{
+	t.Execute(&u, map[string]interface{}{
 		"cmd": filepath.Base(app.cmd),
 	})
 	fmt.Fprintf(app.stderr, "%s\n\n", bytes.TrimSpace(u.Bytes()))
 }
 
 func (app *envtmpl) helpUsage() {
-	usageTemplate := template.Must(
-		template.New("").Funcs(funcMap.funcs()).Parse(helpTemplate),
+	t := template.Must(
+		template.New("help").Funcs(funcMap.funcs()).Parse(helpTemplate),
 	)
+	template.Must(t.New("funcHelp").Parse(funcHelpTemplate))
+
 	type funcData struct {
+		Name    string
 		Short   string
 		Example map[string]string
 	}
@@ -161,6 +168,7 @@ func (app *envtmpl) helpUsage() {
 	funcs := make(map[string]funcData)
 	for n, fn := range funcMap {
 		fd := funcData{
+			Name:    n,
 			Short:   fn.shortUsage(),
 			Example: make(map[string]string),
 		}
@@ -176,10 +184,13 @@ func (app *envtmpl) helpUsage() {
 		}
 		funcs[n] = fd
 	}
-	usageTemplate.Execute(&u, map[string]interface{}{
+	err := t.Execute(&u, map[string]interface{}{
 		"cmd":   filepath.Base(app.cmd),
 		"funcs": funcs,
 	})
+	if err != nil {
+		panic(err)
+	}
 	fmt.Fprintf(app.stderr, "%s\n\n", bytes.TrimSpace(u.Bytes()))
 }
 

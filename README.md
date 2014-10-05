@@ -37,6 +37,20 @@ See http://code.google.com/p/re2/wiki/Syntax for regular expression syntax.
 
 ## Template Functions
 
+- [base64Encode](#base64encode) - Encodes a value to base64.
+- [jsonEncode](#jsonencode) - Encodes a value to JSON.
+- [linePrefix](#lineprefix) - Prefix each line.
+- [lower](#lower) - Convert to lower case.
+- [regexReplace](#regexreplace) - Replace values using a regular expression.
+- [slugify](#slugify) - Transform text to a slugified version. You can optionally specify a unicode normalization rule (NFC, NFD, NFKC, NFKD). Default is NFC.
+- [split](#split) - Split in a string substrings using another string.
+- [title](#title) - Convert to title case.
+- [trimPrefix](#trimprefix) - Remove leading prefix. If the string doesn't start with the prefix then it's unchanged.
+- [trimSpace](#trimspace) - Remove all leading and trailing white space.
+- [trimSuffix](#trimsuffix) - Remove trailing suffix. If the string doesn't end with the suffix then it's unchanged.
+- [upper](#upper) - Convert to upper case.
+- [uuid](#uuid) - Create a random (v4) UUID.
+
 ### base64Encode
 
 Encodes a value to base64.
@@ -242,7 +256,7 @@ Template:
 
 Output:
 
-    fcac0556-a69b-4507-bdc5-f8455d4d90f5
+    5cc63001-6125-4775-a01f-57a9eda13e55
 
 # Contributing
 

@@ -46,7 +46,7 @@ NFKD: {{ "Hello áçćèńtš!" | %[1]s "NFKD" }}`,
 			default:
 				return "", fmt.Errorf("Unknown normalisation '%s'.", mode)
 			}
-			runes := make([]rune, len(src))
+			var runes []rune
 			for _, r := range src {
 				if unicode.IsOneOf(allowed, r) || r == '-' || r == '_' || r == '~' {
 					runes = append(runes, r)

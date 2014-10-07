@@ -37,22 +37,27 @@ See http://code.google.com/p/re2/wiki/Syntax for regular expression syntax.
 
 ## Template Functions
 
-- [base64Encode](#base64encode) - Encodes a value to base64.
-- [jsonDecode](#jsondecode) - Decodes a JSON string.
-- [jsonEncode](#jsonencode) - Encodes a value to JSON.
-- [linePrefix](#lineprefix) - Prefix each line.
-- [lower](#lower) - Convert to lower case.
-- [regexReplace](#regexreplace) - Replace values using a regular expression.
-- [slugify](#slugify) - Transform text to a slugified version.
-- [split](#split) - Split in a string substrings using another string.
-- [title](#title) - Convert to title case.
-- [trimPrefix](#trimprefix) - Remove leading prefix.
-- [trimSpace](#trimspace) - Remove all leading and trailing white space.
-- [trimSuffix](#trimsuffix) - Remove trailing suffix.
-- [upper](#upper) - Convert to upper case.
-- [url](#url) - Parse a URL from a string.
-- [uuid](#uuid) - Create a random (v4) UUID.
-- [wordWrap](#wordwrap) - Wraps text to a given number of runes.
+In addition to the [actions](http://golang.org/pkg/text/template/#hdr-Actions)
+and [functions](http://golang.org/pkg/text/template/#hdr-Functions) provided by
+the core [template engine](http://golang.org/pkg/text/template/#pkg-overview),
+envtmpl provides the following functions for use in your templates:
+
+* [base64Encode](#base64encode) - Encodes a value to base64.
+* [jsonDecode](#jsondecode) - Decodes a JSON string.
+* [jsonEncode](#jsonencode) - Encodes a value to JSON.
+* [linePrefix](#lineprefix) - Prefix each line.
+* [lower](#lower) - Convert to lower case.
+* [regexReplace](#regexreplace) - Replace values using a regular expression.
+* [slugify](#slugify) - Transform text to a slugified version.
+* [split](#split) - Split in a string substrings using another string.
+* [title](#title) - Convert to title case.
+* [trimPrefix](#trimprefix) - Remove leading prefix.
+* [trimSpace](#trimspace) - Remove all leading and trailing white space.
+* [trimSuffix](#trimsuffix) - Remove trailing suffix.
+* [upper](#upper) - Convert to upper case.
+* [url](#url) - Parse a URL from a string.
+* [uuid](#uuid) - Create a random (v4) UUID.
+* [wordWrap](#wordwrap) - Wraps text to a given number of runes.
 
 ### base64Encode
 
@@ -141,7 +146,8 @@ Output:
 
 ### slugify
 
-Transform text to a slugified version. You can optionally specify a unicode normalization rule (NFC, NFD, NFKC, NFKD). Default is NFC.
+Transform text to a slugified version. You can optionally specify a unicode
+normalization rule (NFC, NFD, NFKC, NFKD). Default is NFC.
 
 Template:
 
@@ -199,7 +205,8 @@ Output:
 
 ### trimPrefix
 
-Remove leading prefix. If the string doesn't start with the prefix then it's unchanged.
+Remove leading prefix. If the string doesn't start with the prefix then it's
+unchanged.
 
 Template:
 
@@ -231,7 +238,8 @@ Output:
 
 ### trimSuffix
 
-Remove trailing suffix. If the string doesn't end with the suffix then it's unchanged.
+Remove trailing suffix. If the string doesn't end with the suffix then it's
+unchanged.
 
 Template:
 
@@ -263,7 +271,8 @@ Output:
 
 ### url
 
-Parse a URL from a string. You can optionally provide a base URL that will be used as the context for processing.
+Parse a URL from a string. You can optionally provide a base URL that will be
+used as the context for processing.
 
 Template:
 
@@ -393,11 +402,12 @@ Template:
 
 Output:
 
-    8675b961-9645-4b73-98d8-29d471515b1a
+    046e39e2-c050-4f3f-8adf-e6380639522f
 
 ### wordWrap
 
-Wraps text to a given number of runes. Any existing white space is lost in the transformation.
+Wraps text to a given number of runes. Any existing white space is lost in the
+transformation.
 
 Template:
 

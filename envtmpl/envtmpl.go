@@ -41,14 +41,19 @@ See http://code.google.com/p/re2/wiki/Syntax for regular expression syntax.
 
 ## Template Functions
 
-{{ range .funcs }}- [{{ .Name }}](#{{ .Name | slugify }}) - {{ index (split .Short ".") 0 }}.
+In addition to the [actions](http://golang.org/pkg/text/template/#hdr-Actions)
+and [functions](http://golang.org/pkg/text/template/#hdr-Functions) provided by
+the core [template engine](http://golang.org/pkg/text/template/#pkg-overview),
+{{ .cmd }} provides the following functions for use in your templates:
+
+{{ range .funcs }}* [{{ .Name }}](#{{ .Name | slugify }}) - {{ index (split .Short ".") 0 }}.
 {{ end }}
 {{ range .funcs }}{{ template "funcHelp" . }}{{ end }}
 `
 
 const funcHelpTemplate = `### {{ .Name }}
 
-{{ .Short }}
+{{ .Short | wordWrap 80 }}
 {{ range $ex, $out := .Example }}
 Template:
 

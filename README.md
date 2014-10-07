@@ -50,6 +50,7 @@ See http://code.google.com/p/re2/wiki/Syntax for regular expression syntax.
 - [trimSpace](#trimspace) - Remove all leading and trailing white space.
 - [trimSuffix](#trimsuffix) - Remove trailing suffix.
 - [upper](#upper) - Convert to upper case.
+- [url](#url) - Parse a URL from a string.
 - [uuid](#uuid) - Create a random (v4) UUID.
 - [wordWrap](#wordwrap) - Wraps text to a given number of runes.
 
@@ -260,6 +261,128 @@ Output:
 
     HELLO WORLD!
 
+### url
+
+Parse a URL from a string. You can optionally provide a base URL that will be used as the context for processing.
+
+Template:
+
+    {{define "u"}}Url: {{ . }}
+    IsAbs: {{ .IsAbs }}
+    Scheme: "{{ .Scheme }}"
+    Opaque: "{{ .Opaque }}"
+    UserPassword: "{{ .UserPassword }}"
+    Username: "{{ .Username }}"
+    HasPassword: {{ .HasPassword }}
+    Password: "{{ .Password }}"
+    Host: "{{ .Host }}"
+    Path: "{{ .Path }}"
+    RawQuery: "{{ .RawQuery }}"
+    Query: {{ .Query | jsonEncode }}
+    Fragment: "{{ .Fragment }}"
+    RequestURI: "{{ .RequestURI }}"
+    {{end}}
+    {{ template "u" "scheme://username:password@domain:port/path?query=string#fragment_id" | url }}
+    {{ template "u" "scheme://username:@domain?a=1&b=2&a=11" | url }}
+    {{ template "u" "scheme:opaque?query=string#fragment_id" | url }}
+    {{ template "u" "../bar/baz" | url }}
+    {{ template "u" "../bar/baz" | url "scheme://domain/foo/qux/" }}
+
+Output:
+
+    
+    Url: scheme://username:password@domain:port/path?query=string#fragment_id
+    IsAbs: true
+    Scheme: "scheme"
+    Opaque: ""
+    UserPassword: "username:password"
+    Username: "username"
+    HasPassword: true
+    Password: "password"
+    Host: "domain:port"
+    Path: "/path"
+    RawQuery: "query=string"
+    Query: {
+      "query": [
+        "string"
+      ]
+    }
+    Fragment: "fragment_id"
+    RequestURI: "/path?query=string"
+    
+    Url: scheme://username:@domain?a=1&b=2&a=11
+    IsAbs: true
+    Scheme: "scheme"
+    Opaque: ""
+    UserPassword: "username:"
+    Username: "username"
+    HasPassword: true
+    Password: ""
+    Host: "domain"
+    Path: ""
+    RawQuery: "a=1&b=2&a=11"
+    Query: {
+      "a": [
+        "1",
+        "11"
+      ],
+      "b": [
+        "2"
+      ]
+    }
+    Fragment: ""
+    RequestURI: "/?a=1&b=2&a=11"
+    
+    Url: scheme:opaque?query=string#fragment_id
+    IsAbs: true
+    Scheme: "scheme"
+    Opaque: "opaque"
+    UserPassword: ""
+    Username: ""
+    HasPassword: false
+    Password: ""
+    Host: ""
+    Path: ""
+    RawQuery: "query=string"
+    Query: {
+      "query": [
+        "string"
+      ]
+    }
+    Fragment: "fragment_id"
+    RequestURI: "opaque?query=string"
+    
+    Url: ../bar/baz
+    IsAbs: false
+    Scheme: ""
+    Opaque: ""
+    UserPassword: ""
+    Username: ""
+    HasPassword: false
+    Password: ""
+    Host: ""
+    Path: "../bar/baz"
+    RawQuery: ""
+    Query: {}
+    Fragment: ""
+    RequestURI: "../bar/baz"
+    
+    Url: scheme://domain/foo/bar/baz
+    IsAbs: true
+    Scheme: "scheme"
+    Opaque: ""
+    UserPassword: ""
+    Username: ""
+    HasPassword: false
+    Password: ""
+    Host: "domain"
+    Path: "/foo/bar/baz"
+    RawQuery: ""
+    Query: {}
+    Fragment: ""
+    RequestURI: "/foo/bar/baz"
+    
+
 ### uuid
 
 Create a random (v4) UUID.
@@ -270,7 +393,7 @@ Template:
 
 Output:
 
-    7bef829b-2197-4ca3-8d4d-52ddfdbfd12d
+    8675b961-9645-4b73-98d8-29d471515b1a
 
 ### wordWrap
 

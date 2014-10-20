@@ -42,7 +42,13 @@ and [functions](http://golang.org/pkg/text/template/#hdr-Functions) provided by
 the core [template engine](http://golang.org/pkg/text/template/#pkg-overview),
 envtmpl provides the following functions for use in your templates:
 
+* [base32Decode](#base32decode) - Decodes a base32 string.
+* [base32Encode](#base32encode) - Encodes a value to base32.
+* [base64Decode](#base64decode) - Decodes a base64 string.
 * [base64Encode](#base64encode) - Encodes a value to base64.
+* [hash](#hash) - Calculate the hex encoded hash of a string.
+* [hexDecode](#hexdecode) - Decodes a hex string.
+* [hexEncode](#hexencode) - Encodes a value to hex.
 * [jsonDecode](#jsondecode) - Decodes a JSON string.
 * [jsonEncode](#jsonencode) - Encodes a value to JSON.
 * [linePrefix](#lineprefix) - Prefix each line.
@@ -56,8 +62,46 @@ envtmpl provides the following functions for use in your templates:
 * [trimSuffix](#trimsuffix) - Remove trailing suffix.
 * [upper](#upper) - Convert to upper case.
 * [url](#url) - Parse a URL from a string.
+* [urlEscape](#urlescape) - Escapes the string so it can be safely placed inside a URL query.
+* [urlUnescape](#urlunescape) - Unescapes a URL query string value.
 * [uuid](#uuid) - Create a random (v4) UUID.
 * [wordWrap](#wordwrap) - Wraps text to a given number of runes.
+
+### base32Decode
+
+Decodes a base32 string.
+
+Template:
+
+    {{ "JBSWY3DPEBLU6USMIQQQ====" | base32Decode }}
+
+Output:
+
+    Hello WORLD!
+
+### base32Encode
+
+Encodes a value to base32.
+
+Template:
+
+    {{ "Hello WORLD!" | base32Encode }}
+
+Output:
+
+    JBSWY3DPEBLU6USMIQQQ====
+
+### base64Decode
+
+Decodes a base64 string.
+
+Template:
+
+    {{ "SGVsbG8gV09STEQh" | base64Decode }}
+
+Output:
+
+    Hello WORLD!
 
 ### base64Encode
 
@@ -70,6 +114,177 @@ Template:
 Output:
 
     SGVsbG8gV09STEQh
+
+### hash
+
+Calculate the hex encoded hash of a string. You can optionally specify a key to
+produce a HMAC string. The following hash algorithms are supported: adler32,
+crc32, crc64ecma, crc64iso, fnv1-32, fnv1-64, fnv1a-32, fnv1a-64, md5, sha1,
+sha224, sha256, sha384, sha512.
+
+Template:
+
+    {{ "Hello World!" | hash "adler32" }}
+    {{ "Hello World!" | hash "adler32" "a key" }}
+
+Output:
+
+    1c49043e
+    052901bf
+
+Template:
+
+    {{ "Hello World!" | hash "crc32" }}
+    {{ "Hello World!" | hash "crc32" "a key" }}
+
+Output:
+
+    1c291ca3
+    478193aa
+
+Template:
+
+    {{ "Hello World!" | hash "crc64ecma" }}
+    {{ "Hello World!" | hash "crc64ecma" "a key" }}
+
+Output:
+
+    75045245c9ea6fe2
+    387589d9abc2595d
+
+Template:
+
+    {{ "Hello World!" | hash "crc64iso" }}
+    {{ "Hello World!" | hash "crc64iso" "a key" }}
+
+Output:
+
+    7db9cf17f71cd9ac
+    e349c05d90529684
+
+Template:
+
+    {{ "Hello World!" | hash "fnv1-32" }}
+    {{ "Hello World!" | hash "fnv1-32" "a key" }}
+
+Output:
+
+    12a9a41c
+    44d4e845
+
+Template:
+
+    {{ "Hello World!" | hash "fnv1-64" }}
+    {{ "Hello World!" | hash "fnv1-64" "a key" }}
+
+Output:
+
+    8e59dd02f68c387c
+    bbf3e38bba595be5
+
+Template:
+
+    {{ "Hello World!" | hash "fnv1a-32" }}
+    {{ "Hello World!" | hash "fnv1a-32" "a key" }}
+
+Output:
+
+    b1ea4872
+    17ef57fd
+
+Template:
+
+    {{ "Hello World!" | hash "fnv1a-64" }}
+    {{ "Hello World!" | hash "fnv1a-64" "a key" }}
+
+Output:
+
+    8c0ec8d1fb9e6e32
+    ee9b6cfc8ca44005
+
+Template:
+
+    {{ "Hello World!" | hash "md5" }}
+    {{ "Hello World!" | hash "md5" "a key" }}
+
+Output:
+
+    ed076287532e86365e841e92bfc50d8c
+    3997a224c5ed2b57cf179a38ec61f455
+
+Template:
+
+    {{ "Hello World!" | hash "sha1" }}
+    {{ "Hello World!" | hash "sha1" "a key" }}
+
+Output:
+
+    2ef7bde608ce5404e97d5f042f95f89f1c232871
+    edff5c450e50bbc39c684f96f9647a7b2a412c42
+
+Template:
+
+    {{ "Hello World!" | hash "sha224" }}
+    {{ "Hello World!" | hash "sha224" "a key" }}
+
+Output:
+
+    4575bb4ec129df6380cedde6d71217fe0536f8ffc4e18bca530a7a1b
+    e2ea9d5f84029e65ad0185986f817fa1677e6c9868bbb80aa69b3052
+
+Template:
+
+    {{ "Hello World!" | hash "sha256" }}
+    {{ "Hello World!" | hash "sha256" "a key" }}
+
+Output:
+
+    7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069
+    31f704a351e00973d2320c7b55eeeab0cd4e53a6b5d281b172596eaf69667cfa
+
+Template:
+
+    {{ "Hello World!" | hash "sha384" }}
+    {{ "Hello World!" | hash "sha384" "a key" }}
+
+Output:
+
+    bfd76c0ebbd006fee583410547c1887b0292be76d582d96c242d2a792723e3fd6fd061f9d5cfd13b8f961358e6adba4a
+    6a51e0a4ec0cdc6698bccc183dfcd877376c3860871781d705e62286be9fe4c7df14f6c8a6100919e0b84032dd672f5e
+
+Template:
+
+    {{ "Hello World!" | hash "sha512" }}
+    {{ "Hello World!" | hash "sha512" "a key" }}
+
+Output:
+
+    861844d6704e8573fec34d967e20bcfef3d424cf48be04e6dc08f2bd58c729743371015ead891cc3cf1c9d34b49264b510751b1ff9e537937bc46b5d6ff4ecc8
+    a22b0da52cc34b891eb7575afc4cc73189a0c770a039d6d4c28f3f5a45ea62fce3b73094b63338a32ef5d3c7a20f28331d5ea899c58b8cebdf21aa3469cf3731
+
+### hexDecode
+
+Decodes a hex string.
+
+Template:
+
+    {{ "48656c6c6f20574f524c4421" | hexDecode }}
+
+Output:
+
+    Hello WORLD!
+
+### hexEncode
+
+Encodes a value to hex.
+
+Template:
+
+    {{ "Hello WORLD!" | hexEncode }}
+
+Output:
+
+    48656c6c6f20574f524c4421
 
 ### jsonDecode
 
@@ -392,6 +607,30 @@ Output:
     RequestURI: "/foo/bar/baz"
     
 
+### urlEscape
+
+Escapes the string so it can be safely placed inside a URL query.
+
+Template:
+
+    {{ "Hello World!" | urlEscape }}
+
+Output:
+
+    Hello+World%21
+
+### urlUnescape
+
+Unescapes a URL query string value.
+
+Template:
+
+    {{ "Hello+World%21" | urlUnescape }}
+
+Output:
+
+    Hello World!
+
 ### uuid
 
 Create a random (v4) UUID.
@@ -402,7 +641,7 @@ Template:
 
 Output:
 
-    046e39e2-c050-4f3f-8adf-e6380639522f
+    f52fc772-fc64-40ae-a74c-f3a49d50e6db
 
 ### wordWrap
 

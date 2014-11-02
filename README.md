@@ -46,6 +46,7 @@ envtmpl provides the following functions for use in your templates:
 * [base32Encode](#base32encode) - Encodes a value to base32.
 * [base64Decode](#base64decode) - Decodes a base64 string.
 * [base64Encode](#base64encode) - Encodes a value to base64.
+* [file](#file) - Read the contents of a file.
 * [hash](#hash) - Calculate the hex encoded hash of a string.
 * [hexDecode](#hexdecode) - Decodes a hex string.
 * [hexEncode](#hexencode) - Encodes a value to hex.
@@ -54,6 +55,7 @@ envtmpl provides the following functions for use in your templates:
 * [linePrefix](#lineprefix) - Prefix each line.
 * [lower](#lower) - Convert to lower case.
 * [regexReplace](#regexreplace) - Replace values using a regular expression.
+* [slice](#slice) - Construct a substring from a string.
 * [slugify](#slugify) - Transform text to a slugified version.
 * [split](#split) - Split in a string substrings using another string.
 * [title](#title) - Convert to title case.
@@ -114,6 +116,19 @@ Template:
 Output:
 
     SGVsbG8gV09STEQh
+
+### file
+
+Read the contents of a file.
+
+Template:
+
+    {{ file "../example/hello.txt" }}
+
+Output:
+
+    Hello, 世界
+    
 
 ### hash
 
@@ -358,6 +373,18 @@ Template:
 Output:
 
     [this] was something
+
+### slice
+
+Construct a substring from a string.
+
+Template:
+
+    {{ "ᛁᚳ᛫ᛗᚨᚷ᛫ᚷᛚᚨᛋ᛫" | slice 3 7 }}
+
+Output:
+
+    ᛗᚨᚷ᛫
 
 ### slugify
 
@@ -641,7 +668,7 @@ Template:
 
 Output:
 
-    f52fc772-fc64-40ae-a74c-f3a49d50e6db
+    606b4f63-d63f-49ac-9229-7e5f95280dc5
 
 ### wordWrap
 

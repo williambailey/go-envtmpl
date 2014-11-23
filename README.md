@@ -4,29 +4,21 @@ Executes text templates using data from environment variables and sends the resu
 
 [![Build Status](https://travis-ci.org/williambailey/go-envtmpl.svg)](https://travis-ci.org/williambailey/go-envtmpl)
 
-## Install
+## Usage:
 
-```
-$ go get -u github.com/williambailey/go-envtmpl/envtmpl
-$ $GOPATH/bin/envtmpl
-Usage:
-  envtmpl tmplDir tmplName.tmpl
-
-Parse tmplDir/*.tmpl and renders tmplName.tmpl to
-STDOUT using environment variables.
-
-Help:
-  envtmpl -h
-```
-
-## Usage: envtmpl tmplDir tmplName.tmpl
+#### envtmpl tmplDir tmplName.tmpl
 
 Parse **tmplDir/*.tmpl** and renders **tmplName.tmpl** to STDOUT using
 environment variables.
 
-See http://golang.org/pkg/text/template/ for template syntax.
+#### envtmpl tmplDir/tmplName.tmpl
 
-See http://code.google.com/p/re2/wiki/Syntax for regular expression syntax.
+Parse **tmplDir/*.tmpl** and renders **tmplName.tmpl** to STDOUT using
+environment variables.
+
+#### envtmpl -
+
+Read template from STDIN and render to STDOUT using environment variables.
 
 ### Exit codes
 
@@ -34,6 +26,12 @@ See http://code.google.com/p/re2/wiki/Syntax for regular expression syntax.
 * 1 - Usage.
 * 2 - Template parse error.
 * 3 - Template execution error.
+
+### Template Syntax.
+
+See http://golang.org/pkg/text/template/ for template syntax.
+
+See http://code.google.com/p/re2/wiki/Syntax for regular expression syntax.
 
 ## Template Functions
 
@@ -128,7 +126,6 @@ Template:
 Output:
 
     Hello, 世界
-    
 
 ### hash
 
@@ -668,7 +665,7 @@ Template:
 
 Output:
 
-    606b4f63-d63f-49ac-9229-7e5f95280dc5
+    0ac2228b-f42c-44b2-959a-f931ed329a37
 
 ### wordWrap
 

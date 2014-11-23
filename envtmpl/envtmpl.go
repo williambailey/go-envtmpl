@@ -11,26 +11,42 @@ import (
 	"text/template"
 )
 
+const Name = "envtmpl"
+const Version = "0.1.0"
+
 const usageTemplate = `
 Usage:
   {{ .cmd }} tmplDir tmplName.tmpl
+  {{ .cmd }} tmplDir/tmplName.tmpl
+  {{ .cmd }} -
 
 Parse tmplDir/*.tmpl and renders tmplName.tmpl to
-STDOUT using environment variables.
+STDOUT using environment variables. If a dash is
+provided then the template is read from STDIN.
+
+Version:
+  {{ .version }}
 
 Help:
   {{ .cmd }} -h
 `
 
 const helpTemplate = `
-# Usage: {{ .cmd }} tmplDir tmplName.tmpl
+# Usage:
+
+#### {{ .usage1 }}
 
 Parse **tmplDir/*.tmpl** and renders **tmplName.tmpl** to STDOUT using
 environment variables.
 
-See http://golang.org/pkg/text/template/ for template syntax.
+#### {{ .usage2 }}
 
-See http://code.google.com/p/re2/wiki/Syntax for regular expression syntax.
+Parse **tmplDir/*.tmpl** and renders **tmplName.tmpl** to STDOUT using
+environment variables.
+
+#### {{ .usageStdin }}
+
+Read template from STDIN and render to STDOUT using environment variables.
 
 ### Exit codes
 
@@ -38,6 +54,12 @@ See http://code.google.com/p/re2/wiki/Syntax for regular expression syntax.
 * 1 - Usage.
 * 2 - Template parse error.
 * 3 - Template execution error.
+
+### Template Syntax.
+
+See http://golang.org/pkg/text/template/ for template syntax.
+
+See http://code.google.com/p/re2/wiki/Syntax for regular expression syntax.
 
 ## Template Functions
 
@@ -71,21 +93,24 @@ const exitTemplateParseError = 2
 const exitTemplateExecutionError = 3
 
 var (
-	funcMap = newTmplFuncMap()
+	funcMap         = newTmplFuncMap()
+	funcHelpExample = false
 )
 
 func main() {
-	os.Exit(new(os.Environ(), os.Args, os.Stdout, os.Stderr).main())
+	os.Exit(new(os.Environ(), os.Args, os.Stdin, os.Stdout, os.Stderr).main())
 }
 
 func new(
 	env []string,
 	args []string,
+	stdin io.Reader,
 	stdout io.Writer,
 	stderr io.Writer,
 ) *envtmpl {
 	f := flag.NewFlagSet(filepath.Base(args[0]), flag.ExitOnError)
 	app := &envtmpl{
+		stdin:    stdin,
 		stdout:   stdout,
 		stderr:   stderr,
 		env:      env,
@@ -100,6 +125,7 @@ func new(
 
 type envtmpl struct {
 	env      []string
+	stdin    io.Reader
 	stdout   io.Writer
 	stderr   io.Writer
 	cmd      string
@@ -112,20 +138,38 @@ func (app *envtmpl) main() int {
 		app.helpUsage()
 		return exitUsage
 	}
-	if app.flag.NArg() != 2 {
+	args := app.flag.Args()
+	var tmplDir string
+	var tmplName string
+	tmplData := make(map[string]string)
+	switch len(args) {
+	case 1:
+		if args[0] == "-" {
+			tmplDir = "-"
+			tmplName = "stdin"
+		} else {
+			tmplDir = filepath.Dir(args[0])
+			tmplName = filepath.Base(args[0])
+		}
+	case 2:
+		tmplDir = args[0]
+		tmplName = args[1]
+	default:
 		app.flag.Usage()
 		return exitUsage
 	}
-	args := app.flag.Args()
-	tmplDir := args[0]
-	tmplName := args[1]
-	tmplData := make(map[string]string)
-
 	tmpl := template.New(
 		fmt.Sprintf("%s [%s]", app.cmd, tmplDir),
 	).Funcs(funcMap.funcs())
 
-	_, err := tmpl.ParseGlob(filepath.Join(tmplDir, "*.tmpl"))
+	var err error
+	if tmplDir == "-" && tmplName == "stdin" {
+		var b bytes.Buffer
+		b.ReadFrom(app.stdin)
+		_, err = tmpl.New("stdin").Parse(b.String())
+	} else {
+		_, err = tmpl.ParseGlob(filepath.Join(tmplDir, "*.tmpl"))
+	}
 	if err != nil {
 		fmt.Fprintf(app.stderr, "Template parse error: %s\n", err)
 		return exitTemplateParseError
@@ -153,12 +197,15 @@ func (app *envtmpl) usage() {
 	)
 	var u bytes.Buffer
 	t.Execute(&u, map[string]interface{}{
-		"cmd": filepath.Base(app.cmd),
+		"version": Version,
+		"cmd":     filepath.Base(app.cmd),
 	})
-	fmt.Fprintf(app.stderr, "%s\n\n", bytes.TrimSpace(u.Bytes()))
+	fmt.Fprintf(app.stderr, "%s\n", bytes.TrimSpace(u.Bytes()))
 }
 
 func (app *envtmpl) helpUsage() {
+	funcHelpExample = true
+	defer func() { funcHelpExample = false }()
 	t := template.Must(
 		template.New("help").Funcs(funcMap.funcs()).Parse(helpTemplate),
 	)
@@ -189,14 +236,18 @@ func (app *envtmpl) helpUsage() {
 		}
 		funcs[n] = fd
 	}
+	cmd := filepath.Base(app.cmd)
 	err := t.Execute(&u, map[string]interface{}{
-		"cmd":   filepath.Base(app.cmd),
-		"funcs": funcs,
+		"cmd":        cmd,
+		"funcs":      funcs,
+		"usage1":     cmd + " tmplDir tmplName.tmpl",
+		"usage2":     cmd + " tmplDir/tmplName.tmpl",
+		"usageStdin": cmd + " -",
 	})
 	if err != nil {
 		panic(err)
 	}
-	fmt.Fprintf(app.stderr, "%s\n\n", bytes.TrimSpace(u.Bytes()))
+	fmt.Fprintf(app.stderr, "%s\n", bytes.TrimSpace(u.Bytes()))
 }
 
 type tmplFuncMap map[string]tmplFunc

@@ -4,14 +4,6 @@ Executes text templates using data from environment variables and sends the resu
 
 [![Build Status](https://travis-ci.org/williambailey/go-envtmpl.svg)](https://travis-ci.org/williambailey/go-envtmpl)
 
-## Install
-
-```
-$ go get -u github.com/williambailey/go-envtmpl/envtmpl
-$ $GOPATH/bin/envtmpl
-{{ .USAGE }}
-```
-
 {{ .HELP_USAGE | regexReplace "^#" "##" }}
 
 # Contributing

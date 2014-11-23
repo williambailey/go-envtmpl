@@ -8,7 +8,12 @@ import (
 	"testing"
 )
 
-func run(t *testing.T, env []string, args []string) (int, *bytes.Buffer, *bytes.Buffer) {
+func run(t *testing.T, env []string, args []string, stdin *[]byte) (int, *bytes.Buffer, *bytes.Buffer) {
+	inR, inW, err := os.Pipe()
+	if err != nil {
+		t.Error(err)
+		return -1, nil, nil
+	}
 	outR, outW, err := os.Pipe()
 	if err != nil {
 		t.Error(err)
@@ -19,7 +24,11 @@ func run(t *testing.T, env []string, args []string) (int, *bytes.Buffer, *bytes.
 		t.Error(err)
 		return -1, nil, nil
 	}
-	app := new(env, args, outW, errW)
+	if stdin != nil {
+		inW.Write(*stdin)
+		inW.Close()
+	}
+	app := new(env, args, inR, outW, errW)
 	r := app.main()
 	outW.Close()
 	errW.Close()
@@ -33,7 +42,7 @@ func run(t *testing.T, env []string, args []string) (int, *bytes.Buffer, *bytes.
 }
 
 func TestInvokeWithoutArgsExitsWithUsage(t *testing.T) {
-	r, o, e := run(t, []string{}, []string{"me"})
+	r, o, e := run(t, []string{}, []string{"me"}, nil)
 	if r != exitUsage {
 		t.Errorf(
 			"Expecting application to terminate with ExitUsage, %d, got %d.",
@@ -51,7 +60,7 @@ func TestInvokeWithoutArgsExitsWithUsage(t *testing.T) {
 }
 
 func TestInvokeWithHelpFlagDisplaysHelpAndExitsWithUsage(t *testing.T) {
-	r, o, e := run(t, []string{}, []string{"me", "-h"})
+	r, o, e := run(t, []string{}, []string{"me", "-h"}, nil)
 	if r != exitUsage {
 		t.Errorf(
 			"Expecting application to terminate with ExitUsage, %d, got %d.",
@@ -62,7 +71,7 @@ func TestInvokeWithHelpFlagDisplaysHelpAndExitsWithUsage(t *testing.T) {
 	if o.Len() != 0 {
 		t.Errorf("Expecting stdout len to be 0, got %d", o.Len())
 	}
-	u := []byte("# Usage: me tmplDir tmplName.tmpl")
+	u := []byte("# Usage:")
 	if !bytes.HasPrefix(e.Bytes(), u) {
 		t.Errorf("Expecting stderr to start `%s` got `%s`", u, e.Bytes()[:len(u)])
 	}
@@ -88,7 +97,7 @@ func TestInvokeWithHelpFlagDisplaysHelpAndExitsWithUsage(t *testing.T) {
 func TestInvokeWithEmptyTmplDirExitsWithTemplateParseError(t *testing.T) {
 	os.Create("foo")
 	defer os.Remove("foo")
-	r, o, e := run(t, []string{}, []string{"me", "foo", "bar.tmpl"})
+	r, o, e := run(t, []string{}, []string{"me", "foo", "bar.tmpl"}, nil)
 	if r != exitTemplateParseError {
 		t.Errorf(
 			"Expecting application to terminate with ExitTemplateParseError, %d, got %d.",
@@ -106,7 +115,7 @@ func TestInvokeWithEmptyTmplDirExitsWithTemplateParseError(t *testing.T) {
 }
 
 func TestInvokeWithUnknownTmplDirExitsWithTemplateParseError(t *testing.T) {
-	r, o, e := run(t, []string{}, []string{"me", "foo", "bar.tmpl"})
+	r, o, e := run(t, []string{}, []string{"me", "foo", "bar.tmpl"}, nil)
 	if r != exitTemplateParseError {
 		t.Errorf(
 			"Expecting application to terminate with ExitTemplateParseError, %d, got %d.",
@@ -126,7 +135,7 @@ func TestInvokeWithUnknownTmplDirExitsWithTemplateParseError(t *testing.T) {
 func TestInvokeWithUnknownTmplExitsWithTemplateExecutionError(t *testing.T) {
 	os.Create("foo.tmpl")
 	defer os.Remove("foo.tmpl")
-	r, o, e := run(t, []string{}, []string{"me", ".", "bar.tmpl"})
+	r, o, e := run(t, []string{}, []string{"me", ".", "bar.tmpl"}, nil)
 	if r != exitTemplateExecutionError {
 		t.Errorf(
 			"Expecting application to terminate with ExitTemplateExecutionError, %d, got %d.",
@@ -146,7 +155,7 @@ func TestInvokeWithUnknownTmplExitsWithTemplateExecutionError(t *testing.T) {
 func TestInvokeWithEmptyTemplate(t *testing.T) {
 	os.Create("foo.tmpl")
 	defer os.Remove("foo.tmpl")
-	r, o, e := run(t, []string{}, []string{"me", ".", "foo.tmpl"})
+	r, o, e := run(t, []string{}, []string{"me", ".", "foo.tmpl"}, nil)
 	if r != exitOk {
 		t.Errorf(
 			"Expecting application to terminate with ExitOk, %d, got %d.",
@@ -167,7 +176,7 @@ func TestInvokeWithSimpleTemplateAndNoEnv(t *testing.T) {
 	defer os.Remove("foo.tmpl")
 	fo.Write([]byte(`Hello {{.WHAT}}!`))
 	fo.Close()
-	r, o, e := run(t, []string{}, []string{"me", ".", "foo.tmpl"})
+	r, o, e := run(t, []string{}, []string{"me", ".", "foo.tmpl"}, nil)
 	if r != exitOk {
 		t.Errorf(
 			"Expecting application to terminate with ExitOk, %d, got %d.",
@@ -184,12 +193,12 @@ func TestInvokeWithSimpleTemplateAndNoEnv(t *testing.T) {
 	}
 }
 
-func TestInvokeWithSimpleTemplate(t *testing.T) {
+func TestInvokeWithSimpleTemplateSingleCommandArg(t *testing.T) {
 	fo, _ := os.Create("foo.tmpl")
 	defer os.Remove("foo.tmpl")
 	fo.Write([]byte(`Hello {{.WHAT}}!`))
 	fo.Close()
-	r, o, e := run(t, []string{"WHAT=World"}, []string{"me", ".", "foo.tmpl"})
+	r, o, e := run(t, []string{"WHAT=World"}, []string{"me", "./foo.tmpl"}, nil)
 	if r != exitOk {
 		t.Errorf(
 			"Expecting application to terminate with ExitOk, %d, got %d.",
@@ -199,6 +208,48 @@ func TestInvokeWithSimpleTemplate(t *testing.T) {
 	}
 	if e.Len() != 0 {
 		t.Errorf("Expecting stderr len to be 0, got %d", e.Len())
+	}
+	ex := []byte(`Hello World!`)
+	if !bytes.Equal(o.Bytes(), ex) {
+		t.Errorf("Expecting stdout to equal `%s` got `%s`", ex, o.Bytes())
+	}
+}
+
+func TestInvokeWithSimpleTemplateTwoCommandArg(t *testing.T) {
+	fo, _ := os.Create("foo.tmpl")
+	defer os.Remove("foo.tmpl")
+	fo.Write([]byte(`Hello {{.WHAT}}!`))
+	fo.Close()
+	r, o, e := run(t, []string{"WHAT=World"}, []string{"me", ".", "foo.tmpl"}, nil)
+	if r != exitOk {
+		t.Errorf(
+			"Expecting application to terminate with ExitOk, %d, got %d.",
+			exitOk,
+			r,
+		)
+	}
+	if e.Len() != 0 {
+		t.Errorf("Expecting stderr len to be 0, got %d", e.Len())
+	}
+	ex := []byte(`Hello World!`)
+	if !bytes.Equal(o.Bytes(), ex) {
+		t.Errorf("Expecting stdout to equal `%s` got `%s`", ex, o.Bytes())
+	}
+}
+
+func TestInvokeWithSimpleTemplateFromStdIn(t *testing.T) {
+	in := []byte(`Hello {{.WHAT}}!`)
+	r, o, e := run(t, []string{"WHAT=World"}, []string{"me", "-"}, &in)
+	if r != exitOk {
+		t.Errorf(
+			"Expecting application to terminate with ExitOk, %d, got %d.",
+			exitOk,
+			r,
+		)
+	}
+	if e.Len() != 0 {
+		t.Errorf("Expecting stderr len to be 0, got %d", e.Len())
+		t.Error(e)
 	}
 	ex := []byte(`Hello World!`)
 	if !bytes.Equal(o.Bytes(), ex) {

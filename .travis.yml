@@ -1,9 +1,8 @@
 language: go
 go:
  - tip
-install:
-  - go get -d ./...
 script:
-  - go test -v ./...
-  - go build -o ./envtmpl/envtmpl ./envtmpl/*.go
-  - ./envtmpl/envtmpl ./example example.tmpl
+  - make test build
+  - ./bin/envtmpl ./example example.tmpl
+  - ./bin/envtmpl ./example/example.tmpl
+  - cat ./example/example.tmpl | ./bin/envtmpl -

@@ -45,6 +45,7 @@ envtmpl provides the following functions for use in your templates:
 * [base64Decode](#base64decode) - Decodes a base64 string.
 * [base64Encode](#base64encode) - Encodes a value to base64.
 * [file](#file) - Read the contents of a file.
+* [get](#get) - Get a value from the global data store.
 * [hash](#hash) - Calculate the hex encoded hash of a string.
 * [hexDecode](#hexdecode) - Decodes a hex string.
 * [hexEncode](#hexencode) - Encodes a value to hex.
@@ -54,6 +55,7 @@ envtmpl provides the following functions for use in your templates:
 * [linePrefix](#lineprefix) - Prefix each line.
 * [lower](#lower) - Convert to lower case.
 * [regexReplace](#regexreplace) - Replace values using a regular expression.
+* [set](#set) - Set a value in the global data store.
 * [slice](#slice) - Construct a substring from a string.
 * [slugify](#slugify) - Transform text to a slugified version.
 * [split](#split) - Split in a string substrings using another string.
@@ -127,6 +129,20 @@ Template:
 Output:
 
     Hello, 世界
+
+### get
+
+Get a value from the global data store.
+
+Template:
+
+    {{ define "t1" }}[{{ get "key" }}]{{ end }}
+    {{ set "key" "value" }}{{ template "t1" }}
+
+Output:
+
+    
+    [value]
 
 ### hash
 
@@ -384,6 +400,20 @@ Template:
 Output:
 
     [this] was something
+
+### set
+
+Set a value in the global data store.
+
+Template:
+
+    {{ define "t1" }}[{{ get "key" }}]{{ end }}
+    {{ set "key" "value" }}{{ template "t1" }}
+
+Output:
+
+    
+    [value]
 
 ### slice
 
@@ -679,7 +709,7 @@ Template:
 
 Output:
 
-    313d5da8-9b30-426f-b1b7-1c1d914e0da8
+    8135e366-72f9-46e0-9f70-6d848b3b57b8
 
 ### wordWrap
 

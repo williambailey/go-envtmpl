@@ -48,6 +48,7 @@ envtmpl provides the following functions for use in your templates:
 * [hash](#hash) - Calculate the hex encoded hash of a string.
 * [hexDecode](#hexdecode) - Decodes a hex string.
 * [hexEncode](#hexencode) - Encodes a value to hex.
+* [include](#include) - Include a template.
 * [jsonDecode](#jsondecode) - Decodes a JSON string.
 * [jsonEncode](#jsonencode) - Encodes a value to JSON.
 * [linePrefix](#lineprefix) - Prefix each line.
@@ -297,6 +298,19 @@ Template:
 Output:
 
     48656c6c6f20574f524c4421
+
+### include
+
+Include a template. Differs from the template keyword in that it can accept the
+template name as part of a pipeline.
+
+Template:
+
+    {{define "ex"}}FOO is {{ .FOO }}{{end}}{{ $t := "ex" }}>>{{ include $t . }}<<
+
+Output:
+
+    >>FOO is foo<<
 
 ### jsonDecode
 
@@ -665,7 +679,7 @@ Template:
 
 Output:
 
-    0ac2228b-f42c-44b2-959a-f931ed329a37
+    313d5da8-9b30-426f-b1b7-1c1d914e0da8
 
 ### wordWrap
 

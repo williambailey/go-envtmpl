@@ -12,7 +12,7 @@ import (
 )
 
 const Name = "envtmpl"
-const Version = "0.1.0"
+const Version = "0.2.0"
 
 const usageTemplate = `
 Usage:
@@ -160,7 +160,8 @@ func (app *envtmpl) main() int {
 	}
 	tmpl := template.New(
 		fmt.Sprintf("%s [%s]", app.cmd, tmplDir),
-	).Funcs(funcMap.funcs())
+	)
+	tmpl.Funcs(funcMap.funcs(tmpl))
 
 	var err error
 	if tmplDir == "-" && tmplName == "stdin" {
@@ -192,8 +193,9 @@ func (app *envtmpl) main() int {
 }
 
 func (app *envtmpl) usage() {
-	t := template.Must(
-		template.New("usage").Funcs(funcMap.funcs()).Parse(usageTemplate),
+	t := template.New("usage")
+	t = template.Must(
+		t.Funcs(funcMap.funcs(t)).Parse(usageTemplate),
 	)
 	var u bytes.Buffer
 	t.Execute(&u, map[string]interface{}{
@@ -206,8 +208,9 @@ func (app *envtmpl) usage() {
 func (app *envtmpl) helpUsage() {
 	funcHelpExample = true
 	defer func() { funcHelpExample = false }()
-	t := template.Must(
-		template.New("help").Funcs(funcMap.funcs()).Parse(helpTemplate),
+	t := template.New("help")
+	t = template.Must(
+		t.Funcs(funcMap.funcs(t)).Parse(helpTemplate),
 	)
 	template.Must(t.New("funcHelp").Parse(funcHelpTemplate))
 
@@ -226,9 +229,10 @@ func (app *envtmpl) helpUsage() {
 		}
 		for _, e := range fn.example(n) {
 			var b bytes.Buffer
+			t := template.New(n)
 			err := template.Must(
-				template.New(n).Funcs(funcMap.funcs()).Parse(e),
-			).Execute(&b, struct{}{})
+				t.Funcs(funcMap.funcs(t)).Parse(e),
+			).Execute(&b, struct{ FOO string }{FOO: "foo"})
 			if err != nil {
 				panic(err)
 			}
@@ -256,10 +260,10 @@ func newTmplFuncMap() tmplFuncMap {
 	return make(tmplFuncMap)
 }
 
-func (m *tmplFuncMap) funcs() map[string]interface{} {
+func (m *tmplFuncMap) funcs(t *template.Template) map[string]interface{} {
 	funcs := make(template.FuncMap)
 	for k, v := range funcMap {
-		funcs[k] = v.f()
+		funcs[k] = v.f(t)
 	}
 	return funcs
 }
@@ -267,7 +271,7 @@ func (m *tmplFuncMap) funcs() map[string]interface{} {
 type tmplFunc interface {
 	shortUsage() string
 	example(name string) []string
-	f() interface{}
+	f(*template.Template) interface{}
 }
 
 type tmplFuncStruct struct {
@@ -288,6 +292,28 @@ func (s *tmplFuncStruct) example(name string) []string {
 	return e
 }
 
-func (s *tmplFuncStruct) f() interface{} {
+func (s *tmplFuncStruct) f(_ *template.Template) interface{} {
 	return s.fn
+}
+
+type tmplFuncFactoryStruct struct {
+	short    string
+	examples []string
+	fn       func(*template.Template) interface{}
+}
+
+func (s *tmplFuncFactoryStruct) shortUsage() string {
+	return s.short
+}
+
+func (s *tmplFuncFactoryStruct) example(name string) []string {
+	e := make([]string, len(s.examples))
+	for k, v := range s.examples {
+		e[k] = fmt.Sprintf(v, name)
+	}
+	return e
+}
+
+func (s *tmplFuncFactoryStruct) f(t *template.Template) interface{} {
+	return s.fn(t)
 }

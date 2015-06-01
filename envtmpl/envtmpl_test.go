@@ -256,3 +256,69 @@ func TestInvokeWithSimpleTemplateFromStdIn(t *testing.T) {
 		t.Errorf("Expecting stdout to equal `%s` got `%s`", ex, o.Bytes())
 	}
 }
+
+func TestInvokeWithCustomDelimitersAndSimpleTemplateSingleCommandArg(t *testing.T) {
+	fo, _ := os.Create("foo.tmpl")
+	defer os.Remove("foo.tmpl")
+	fo.Write([]byte(`Hello !!.WHAT]]!`))
+	fo.Close()
+	r, o, e := run(t, []string{"WHAT=World"}, []string{"me", "-dl", "!!", "-dr", "]]", "./foo.tmpl"}, nil)
+	if r != exitOk {
+		t.Errorf(
+			"Expecting application to terminate with ExitOk, %d, got %d.",
+			exitOk,
+			r,
+		)
+	}
+	if e.Len() != 0 {
+		t.Errorf("Expecting stderr len to be 0, got %d", e.Len())
+	}
+	ex := []byte(`Hello World!`)
+	if !bytes.Equal(o.Bytes(), ex) {
+		t.Errorf("Expecting stdout to equal `%s` got `%s`", ex, o.Bytes())
+	}
+}
+
+func TestInvokeWithCustomLeftHandDelimiterAndSimpleTemplateSingleCommandArg(t *testing.T) {
+	fo, _ := os.Create("foo.tmpl")
+	defer os.Remove("foo.tmpl")
+	fo.Write([]byte(`Hello !!.WHAT}}!`))
+	fo.Close()
+	r, o, e := run(t, []string{"WHAT=World"}, []string{"me", "-dl", "!!", "./foo.tmpl"}, nil)
+	if r != exitOk {
+		t.Errorf(
+			"Expecting application to terminate with ExitOk, %d, got %d.",
+			exitOk,
+			r,
+		)
+	}
+	if e.Len() != 0 {
+		t.Errorf("Expecting stderr len to be 0, got %d", e.Len())
+	}
+	ex := []byte(`Hello World!`)
+	if !bytes.Equal(o.Bytes(), ex) {
+		t.Errorf("Expecting stdout to equal `%s` got `%s`", ex, o.Bytes())
+	}
+}
+
+func TestInvokeWithCustomRightHandDelimiterAndSimpleTemplateSingleCommandArg(t *testing.T) {
+	fo, _ := os.Create("foo.tmpl")
+	defer os.Remove("foo.tmpl")
+	fo.Write([]byte(`Hello {{.WHAT]]!`))
+	fo.Close()
+	r, o, e := run(t, []string{"WHAT=World"}, []string{"me", "-dr", "]]", "./foo.tmpl"}, nil)
+	if r != exitOk {
+		t.Errorf(
+			"Expecting application to terminate with ExitOk, %d, got %d.",
+			exitOk,
+			r,
+		)
+	}
+	if e.Len() != 0 {
+		t.Errorf("Expecting stderr len to be 0, got %d", e.Len())
+	}
+	ex := []byte(`Hello World!`)
+	if !bytes.Equal(o.Bytes(), ex) {
+		t.Errorf("Expecting stdout to equal `%s` got `%s`", ex, o.Bytes())
+	}
+}

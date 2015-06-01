@@ -20,6 +20,11 @@ environment variables.
 
 Read template from STDIN and render to STDOUT using environment variables.
 
+### Flags
+
+* **-dl '{{'** Left-hand action delimiter.
+* **-dr '}}'** Right-hand action delimiter.
+
 ### Exit codes
 
 * 0 - OK.
@@ -709,7 +714,7 @@ Template:
 
 Output:
 
-    8135e366-72f9-46e0-9f70-6d848b3b57b8
+    50139f69-a54f-41c5-8c92-21c165c2eb2c
 
 ### wordWrap
 

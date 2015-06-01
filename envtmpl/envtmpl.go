@@ -12,7 +12,7 @@ import (
 )
 
 const Name = "envtmpl"
-const Version = "0.2.0"
+const Version = "0.3.0"
 
 const usageTemplate = `
 Usage:
@@ -23,6 +23,10 @@ Usage:
 Parse tmplDir/*.tmpl and renders tmplName.tmpl to
 STDOUT using environment variables. If a dash is
 provided then the template is read from STDIN.
+
+Flags:
+  -dl '{{"{{"}}' Left-hand action delimiter.
+  -dr '{{"}}"}}' Right-hand action delimiter.
 
 Version:
   {{ .version }}
@@ -47,6 +51,11 @@ environment variables.
 #### {{ .usageStdin }}
 
 Read template from STDIN and render to STDOUT using environment variables.
+
+### Flags
+
+* **-dl '{{"{{"}}'** Left-hand action delimiter.
+* **-dr '{{"}}"}}'** Right-hand action delimiter.
 
 ### Exit codes
 
@@ -110,13 +119,15 @@ func new(
 ) *envtmpl {
 	f := flag.NewFlagSet(filepath.Base(args[0]), flag.ExitOnError)
 	app := &envtmpl{
-		stdin:    stdin,
-		stdout:   stdout,
-		stderr:   stderr,
-		env:      env,
-		cmd:      filepath.Base(args[0]),
-		flag:     f,
-		flagHelp: f.Bool("h", false, "Display help information, including function list."),
+		stdin:          stdin,
+		stdout:         stdout,
+		stderr:         stderr,
+		env:            env,
+		cmd:            filepath.Base(args[0]),
+		flag:           f,
+		flagHelp:       f.Bool("h", false, "Display help information, including function list."),
+		flagDelimLeft:  f.String("dl", "{{", "Left-hand action delimiter."),
+		flagDelimRight: f.String("dr", "}}", "Right-hand action delimiter."),
 	}
 	app.flag.Usage = app.usage
 	app.flag.Parse(args[1:])
@@ -124,13 +135,15 @@ func new(
 }
 
 type envtmpl struct {
-	env      []string
-	stdin    io.Reader
-	stdout   io.Writer
-	stderr   io.Writer
-	cmd      string
-	flag     *flag.FlagSet
-	flagHelp *bool
+	env            []string
+	stdin          io.Reader
+	stdout         io.Writer
+	stderr         io.Writer
+	cmd            string
+	flag           *flag.FlagSet
+	flagHelp       *bool
+	flagDelimLeft  *string
+	flagDelimRight *string
 }
 
 func (app *envtmpl) main() int {
@@ -161,6 +174,7 @@ func (app *envtmpl) main() int {
 	tmpl := template.New(
 		fmt.Sprintf("%s [%s]", app.cmd, tmplDir),
 	)
+	tmpl.Delims(*app.flagDelimLeft, *app.flagDelimRight)
 	tmpl.Funcs(funcMap.funcs(tmpl))
 
 	var err error
